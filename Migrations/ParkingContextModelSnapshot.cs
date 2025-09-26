@@ -41,6 +41,39 @@ namespace ParkingServer.Migrations
 
                     b.ToTable("parking");
                 });
+
+            modelBuilder.Entity("ParkingServer.Models.user", b =>
+                {
+                    b.Property<int>("user_id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("user_id"));
+
+                    b.Property<string>("account")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("identity_number")
+                        .HasColumnType("text");
+
+                    b.Property<string>("name")
+                        .HasColumnType("text");
+
+                    b.Property<string>("parking_id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("password")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("room")
+                        .HasColumnType("text");
+
+                    b.HasKey("user_id");
+
+                    b.ToTable("user");
+                });
 #pragma warning restore 612, 618
         }
     }

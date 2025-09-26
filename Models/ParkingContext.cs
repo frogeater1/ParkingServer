@@ -15,6 +15,7 @@ public partial class ParkingContext : DbContext
     {
     }
 
+    public virtual DbSet<user> user { get; set; }
     public virtual DbSet<parking> parking { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

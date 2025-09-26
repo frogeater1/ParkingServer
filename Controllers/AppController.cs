@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using ParkingServer.Models;
 
 namespace ParkingServer.Controllers;
@@ -15,6 +14,24 @@ public class AppController : ControllerBase
         this.db = db;
     }
 
+
+    [HttpPost("login")]
+    public ActionResult Login([FromBody] LoginRequest request)
+    {
+        var user = db.user.FirstOrDefault(u => u.account == request.account);
+
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.password, user.password))
+        {
+            return Unauthorized("Invalid account or password");
+        }
+
+        return Ok(new LoginResponse(user.user_id, user.parking_id, Utils.GenerateJwtToken(user.user_id)));
+    }
+
+    // [HttpPost("userInfo")]
+    // public ActionResult UserInfo([From])
+    //
+
     [HttpGet("getParkingList")]
     public ActionResult GetParkingList()
     {
@@ -22,17 +39,10 @@ public class AppController : ControllerBase
         return Ok(parkings);
     }
 
-    [HttpPost("parkingGrab")]
-    public ActionResult ParkingGrab([FromBody] ParkingGrabRequest request)
+    [HttpGet("parkingGrab")]
+    public ActionResult ParkingGrab(string parking_id)
     {
-        if (string.IsNullOrEmpty(request.parking_id) ||
-            string.IsNullOrEmpty(request.account) ||
-            string.IsNullOrEmpty(request.password))
-        {
-            return BadRequest("Missing required parameters: parking_id, account, password");
-        }
-
-        var parking = db.parking.FirstOrDefault(p => p.parking_id == request.parking_id);
+        var parking = db.parking.Single(p => p.parking_id == parking_id);
         if (parking is not { status: "available" })
         {
             return NotFound("Parking spot not found");
