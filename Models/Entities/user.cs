@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ParkingServer.Models;
 
@@ -18,4 +20,8 @@ public partial class user
     public string? room { get; set; }
 
     public string? parking_id { get; set; }
+
+    [JsonIgnore]
+    [ForeignKey("parking_id")]
+    public parking? parking { get; set; }
 }

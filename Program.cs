@@ -47,13 +47,40 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<ParkingContext>();
     db.Database.Migrate(); // 自动应用迁移
 
-    db.user.Add(new user
-    {
-        account = "test1",
-        password = BCrypt.Net.BCrypt.HashPassword("123456")
-    });
-    db.SaveChanges();
+    // // 读取 user.json 文件并添加用户
+    // var userJsonPath = Path.Combine(AppContext.BaseDirectory, "user.json");
+    // if (File.Exists(userJsonPath))
+    // {
+    //     var jsonContent = File.ReadAllText(userJsonPath);
+    //     using var jsonDoc = System.Text.Json.JsonDocument.Parse(jsonContent);
+    //
+    //     var usersAdded = 0;
+    //     foreach (var element in jsonDoc.RootElement.EnumerateArray())
+    //     {
+    //         var account = element.GetProperty("account").GetString();
+    //         var password = element.GetProperty("password").GetString();
+    //
+    //         if (account != null && password != null && !db.user.Any(u => u.account == account))
+    //         {
+    //             db.user.Add(new user
+    //             {
+    //                 account = account,
+    //                 password = BCrypt.Net.BCrypt.HashPassword(password)
+    //             });
+    //             usersAdded++;
+    //         }
+    //     }
+    //
+    //     db.SaveChanges();
+    //     Console.WriteLine($"成功添加 {usersAdded} 个用户到数据库");
+    // }
+    // else
+    // {
+    //     Console.WriteLine($"未找到 user.json 文件：{userJsonPath}");
+    // }
 }
+
+Console.WriteLine("1010_01");
 
 app.MapControllers();
 
