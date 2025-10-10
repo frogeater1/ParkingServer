@@ -51,6 +51,16 @@ public class AppController : ControllerBase
     [HttpGet("parkingGrab")]
     public ActionResult ParkingGrab(string parking_id)
     {
+        var error = GetUserIdFromToken(out var userId);
+        if (error != null) return error;
+
+        var user = db.user.Single(u => u.user_id == userId);
+
+        if (user.parking_id != null)
+        {
+            return BadRequest("用户已拥有停车位");
+        }
+
         var parking = db.parking.Single(p => p.parking_id == parking_id);
         if (parking is not { status: "available" })
         {
@@ -58,6 +68,9 @@ public class AppController : ControllerBase
         }
 
         parking.status = "sold";
+        
+        user.parking = parking;
+        
         db.SaveChanges();
 
         return Ok();
@@ -66,17 +79,10 @@ public class AppController : ControllerBase
     [HttpPost("submitUserInfo")]
     public ActionResult SubmitUserInfo([FromBody] SubmitUserInfoRequest request)
     {
-        var userIdClaim = User.FindFirst("userId")?.Value;
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
-        {
-            return Unauthorized("无效的token");
-        }
+        var error = GetUserIdFromToken(out var userId);
+        if (error != null) return error;
 
-        var user = db.user.FirstOrDefault(u => u.user_id == userId);
-        if (user == null)
-        {
-            return NotFound($"未找到该用户{userId}");
-        }
+        var user = db.user.Single(u => u.user_id == userId);
 
         user.name = request.name;
         user.identity_number = request.identity_number;
@@ -86,4 +92,21 @@ public class AppController : ControllerBase
 
         return Ok();
     }
+    
+    /// <summary>
+    /// 从token中获取当前用户ID
+    /// </summary>
+    /// <param name="userId">输出用户ID</param>
+    /// <returns>验证失败返回Unauthorized响应，成功返回null</returns>
+    private UnauthorizedObjectResult? GetUserIdFromToken(out int userId)
+    {
+        userId = 0;
+        var userIdClaim = User.FindFirst("userId")?.Value;
+        if (userIdClaim == null || !int.TryParse(userIdClaim, out userId))
+        {
+            return Unauthorized("无效的token");
+        }
+        return null;
+    }
+
 }
