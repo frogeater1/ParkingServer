@@ -23,11 +23,18 @@ public class AppController : ControllerBase
     [AllowAnonymous]
     public ActionResult Login([FromBody] LoginRequest request)
     {
+        // 检查是否在2025年10月12日早上10点之前
+        var allowedLoginTime = new DateTime(2025, 10, 12, 10, 0, 0);
+        if (DateTime.Now < allowedLoginTime)
+        {
+            return StatusCode(403);
+        }
+
         var user = db.user.Include(x => x.parking).FirstOrDefault(u => u.account == request.account);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.password, user.password))
         {
-            return Unauthorized("Invalid account or password");
+            return Unauthorized();
         }
 
         return Ok(new LoginResponse(user.user_id, Utils.GenerateJwtToken(user.user_id), user.parking_id, user.parking?.type, user.parking?.price));
@@ -62,15 +69,21 @@ public class AppController : ControllerBase
         }
 
         var parking = db.parking.Single(p => p.parking_id == parking_id);
+
+        if (parking.status == "reserved")
+        {
+            parking.status = "sold";
+        }
+
         if (parking is not { status: "available" })
         {
             return NotFound("Parking spot not found");
         }
 
         parking.status = "sold";
-        
+
         user.parking = parking;
-        
+
         db.SaveChanges();
 
         return Ok();
@@ -92,7 +105,7 @@ public class AppController : ControllerBase
 
         return Ok();
     }
-    
+
     /// <summary>
     /// 从token中获取当前用户ID
     /// </summary>
@@ -106,7 +119,7 @@ public class AppController : ControllerBase
         {
             return Unauthorized("无效的token");
         }
+
         return null;
     }
-
 }
